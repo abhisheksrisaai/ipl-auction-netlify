@@ -91,12 +91,24 @@ async function pollRoom() {
     if(playerLog) G.playerLog = playerLog;
     if(room.current_player_id) {
       // Reset finalize lock when player changes
-      if(G._lastPlayerId && G._lastPlayerId !== room.current_player_id) G._finalizing = false;
+      if(G._lastPlayerId && G._lastPlayerId !== room.current_player_id) {
+        G._finalizing = false;
+        G._soldMessage = false;
+      }
       G._lastPlayerId = room.current_player_id;
       G.currentPlayer = G.playerMap[room.current_player_id] || null;
       G.currentBid = room.current_bid_lakhs || 0;
       G.currentBidTeam = room.current_bid_team;
       G.timerEnd = room.timer_end;
+    } else {
+      // No current player - clear all state
+      G.currentPlayer = null;
+      G.currentBid = 0;
+      G.currentBidTeam = null;
+      G.timerEnd = null;
+      G._finalizing = false;
+      G._soldMessage = false;
+      G._lastPlayerId = null;
     }
     renderSub();
   }catch(e){console.error('poll',e)}
@@ -358,13 +370,13 @@ function renderAuctionSub() {
       const remaining = (new Date(G.timerEnd) - new Date()) / 1000;
       if(remaining <= 0) {
         timerArea.innerHTML = '<div style="text-align:center;font-size:2rem;color:var(--danger)">⏰ TIME\'S UP!</div>';
-        // Only finalize once per player (avoid re-trigger on every poll)
         if(!G._finalizing) {
           G._finalizing = true;
           finalizePlayer().then(r => {
             G._finalizing = false;
-            if(r?.status==='sold'){ confetti(); toast(`SOLD! → ${r.team} for ₹${r.price}L`,'success'); }
-            else if(r?.status!=='already_sold'&&r?.status!=='already_unsold') toast('UNSOLD','warning');
+            const st = r?.status;
+            if(st === 'sold'){ confetti(); toast(`SOLD! → ${r.team} for ₹${r.price}L`,'success'); }
+            else if(st === 'unsold'){ toast('UNSOLD','warning'); }
             pollRoom();
           });
         }
@@ -402,32 +414,36 @@ function renderAuctionSub() {
     cpEl.innerHTML = '<div class="glass text-center" style="padding:3rem"><p style="font-size:1.5rem;color:var(--muted)">🎯 Select a set and player to begin</p></div>';
     bidPanel.innerHTML = '';
     timerArea.innerHTML = '';
+    renderTeamList(teamListEl);
+    renderLog(logEl);
+    return;
   }
 
-  // Team sidebar
-  const purseTotal = G.room?.purse_lakhs || 12000;
-  teamListEl.innerHTML = G.teams.map(t => {
-    const tr = G.roster.filter(r=>r.team_id===t.id);
-    const spent = tr.reduce((s,r)=>s+r.price_lakhs,0);
-    const pct = (1 - t.purse_left/purseTotal)*100;
-    const color = pct>70?'danger':pct>40?'warning':'';
-    return `<div class="team-bar">
-      <div class="team-name">${t.name}</div>
-      <div class="team-purse">💰${t.purse_left}L</div>
-      <div class="team-squad">${t.squad_size}/21 🌍${t.overseas_count}/8</div>
-      <div class="progress-bar" style="width:80px"><div class="progress-fill ${color}" style="width:${Math.min(100,pct)}%"></div></div>
-    </div>`;
-  }).join('');
-
-  // Log
-  logEl.innerHTML = G.playerLog.slice(0,15).map(l=>{
-    const p = G.playerMap[l.player_id] || {};
-    if(l.sold_to) {
-      const tm = G.teams.find(t=>t.id===l.sold_to);
-      return `<div class="log-entry log-sold">✅ ${p.name||l.player_id} → ${tm?.name||'?'} for ₹${l.price_lakhs}L</div>`;
-    }
-    return `<div class="log-entry log-unsold">❌ ${p.name||l.player_id} — UNSOLD</div>`;
-  }).join('');
+  // Team sidebar + Log (always render, even when no player active)
+  if(teamListEl) {
+    const purseTotal = G.room?.purse_lakhs || 12000;
+    teamListEl.innerHTML = G.teams.map(t => {
+      const tr = G.roster.filter(r=>r.team_id===t.id);
+      const pct = Math.max(0,(1 - t.purse_left/(purseTotal||1))*100);
+      const color = pct>70?'danger':pct>40?'warning':'';
+      return `<div class="team-bar">
+        <div class="team-name">${t.name}</div>
+        <div class="team-purse">💰${t.purse_left}L</div>
+        <div class="team-squad">${t.squad_size}/21 🌍${t.overseas_count}/8</div>
+        <div class="progress-bar" style="width:80px"><div class="progress-fill ${color}" style="width:${Math.min(100,pct)}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+  if(logEl) {
+    logEl.innerHTML = G.playerLog.slice(0,15).map(l=>{
+      const p = G.playerMap[l.player_id] || {};
+      if(l.sold_to) {
+        const tm = G.teams.find(t=>t.id===l.sold_to);
+        return `<div class="log-entry log-sold">✅ ${p.name||l.player_id} → ${tm?.name||'?'} for ₹${l.price_lakhs}L</div>`;
+      }
+      return `<div class="log-entry log-unsold">❌ ${p.name||l.player_id} — UNSOLD</div>`;
+    }).join('');
+  }
 
   // Auctioneer controls
   if(G.isAuctioneer) {

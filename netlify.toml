@@ -1,0 +1,6 @@
+{
+  "name": "IPL Mega Auction 2025",
+  "build": {
+    "publish": "."
+  }
+}

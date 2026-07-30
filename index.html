@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+  <meta name="theme-color" content="#0a0a14">
+  <title>🏏 IPL Mega Auction 2025</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<div class="app-container">
+
+  <!-- Header -->
+  <header class="header">
+    <h1>🏏 IPL MEGA AUCTION 2025</h1>
+    <p>Real-time multiplayer auction for friends</p>
+  </header>
+
+  <!-- ══════════════════ HOME ══════════════════ -->
+  <section id="page-home" class="page">
+    <div class="grid-2 mt-2">
+      <!-- Create Room -->
+      <div class="glass" style="padding:2rem">
+        <h2 style="color:var(--gold);margin-bottom:1rem">🎤 Create Room</h2>
+        <p class="text-muted mb-2">You'll be the Auctioneer — full control.</p>
+        <form id="create-form">
+          <input class="input mb-1" id="create-name" placeholder="Your name (Auctioneer)" required>
+          <div class="grid-2 mb-1">
+            <div><label class="text-sm text-muted">Timer (seconds)</label>
+              <input class="input" id="create-timer" type="number" value="15" min="5" max="60"></div>
+            <div><label class="text-sm text-muted">Max Teams</label>
+              <input class="input" id="create-max" type="number" value="10" min="2" max="20"></div>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit">🎬 Create Room</button>
+        </form>
+      </div>
+
+      <!-- Join Room -->
+      <div class="glass" style="padding:2rem">
+        <h2 style="color:var(--gold);margin-bottom:1rem">🎯 Join Room</h2>
+        <p class="text-muted mb-2">Join with your own custom team name.</p>
+        <form id="join-form">
+          <input class="input mb-1" id="join-code" placeholder="Room code (e.g. ABC123)" maxlength="6" style="text-transform:uppercase" required>
+          <input class="input mb-1" id="join-team" placeholder="Your team name" required>
+          <button class="btn btn-primary btn-lg btn-block" type="submit">🚀 Join Room</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ LOBBY ══════════════════ -->
+  <section id="page-lobby" class="page hidden">
+    <div class="text-center mt-2">
+      <div class="room-code" id="lobby-code">------</div>
+      <p class="text-muted mt-1">Auctioneer: <strong id="lobby-auctioneer"></strong></p>
+    </div>
+
+    <h3 class="section-title mt-3">👥 Teams Joined</h3>
+    <div class="grid-3" id="lobby-team-grid"></div>
+
+    <div id="lobby-auctioneer-panel" class="glass mt-3 hidden" style="padding:2rem;text-align:center">
+      <h3 style="color:var(--gold)">🎤 Set Purse & Start</h3>
+      <div class="grid-2 mt-2" style="max-width:500px;margin:0 auto">
+        <div>
+          <label class="text-sm text-muted">Purse (₹ Crore per team)</label>
+          <input class="input" id="lobby-purse" type="number" value="120" min="50" max="200">
+        </div>
+        <div class="flex-center">
+          <p id="lobby-purse-display" class="text-gold"></p>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-lg mt-2" id="lobby-start-btn" onclick="startAuction()">🚀 Set Purse & Start Auction</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════ AUCTION ══════════════════ -->
+  <section id="page-auction" class="page hidden">
+    <div class="grid-2 mt-1" style="grid-template-columns:2fr 1fr">
+      <!-- Main -->
+      <div>
+        <div id="timer-area"></div>
+        <div id="auction-player-card"></div>
+        <div id="bid-panel" class="bid-panel glass mt-1"></div>
+        <div id="auctioneer-controls" class="glass mt-2 hidden" style="padding:1rem">
+          <h4 style="color:var(--gold);margin-bottom:0.5rem">🎤 Auctioneer Controls</h4>
+          <div class="grid-2 gap-1">
+            <select class="select" id="auction-set-select"></select>
+            <select class="select" id="auction-player-select"><option>—</option></select>
+          </div>
+          <div class="flex-center gap-1 mt-1" style="flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="handleSetPlayer()">▶️ Set Player</button>
+            <button class="btn btn-secondary btn-sm" onclick="handleSkip()">⏭ Skip</button>
+            <button class="btn btn-primary btn-sm" onclick="handleForceSell()">🔨 Force Sell</button>
+            <button class="btn btn-danger btn-sm" onclick="handleSendUnsold()">❌ Send to Unsold</button>
+            <button class="btn btn-secondary btn-sm" onclick="handleUndo()">↩️ Undo</button>
+            <button class="btn btn-secondary btn-sm" id="mystery-btn">🔮 Mystery Set</button>
+            <button class="btn btn-danger btn-sm" onclick="handleEndAuction()">🏁 End Auction → Accelerated</button>
+          </div>
+        </div>
+      </div>
+      <!-- Sidebar -->
+      <div>
+        <h4 style="color:var(--gold);margin-bottom:0.5rem">🏟️ Teams</h4>
+        <div id="team-list"></div>
+        <h4 class="section-title mt-2">📜 Recent Activity</h4>
+        <div id="log-container" style="max-height:300px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ UNSOLD ══════════════════ -->
+  <section id="page-unsold" class="page hidden">
+    <h2 style="color:var(--gold);text-align:center;margin-top:1rem">⚡ Accelerated Unsold Round</h2>
+    <p class="text-center text-muted" id="unsold-count">0 unsold players remaining · 50% base price</p>
+    <div class="grid-3 mt-2" id="unsold-cards"></div>
+    <div id="unsold-auctioneer" class="hidden text-center mt-2">
+      <button class="btn btn-secondary" onclick="skipUnsoldBatch()">⏭ Skip Batch</button>
+      <button class="btn btn-primary" onclick="finishUnsold()">🏁 Finish → Trade Window</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════ TRADE ══════════════════ -->
+  <section id="page-trade" class="page hidden">
+    <h2 style="color:var(--gold);text-align:center;margin-top:1rem">🤝 Trade Window</h2>
+    <div class="grid-2 mt-2">
+      <div class="glass" style="padding:1.5rem">
+        <h4>📋 Propose Trade</h4>
+        <select class="select mb-1" id="trade-my-players"></select>
+        <select class="select mb-1" id="trade-target-team"></select>
+        <select class="select mb-1" id="trade-want-player"></select>
+        <button class="btn btn-primary btn-block" onclick="proposeTrade()">🤝 Send Offer</button>
+      </div>
+      <div class="glass" style="padding:1.5rem">
+        <h4>📨 Incoming Offers</h4>
+        <div id="trade-offers"></div>
+      </div>
+    </div>
+    <div class="glass mt-2" style="padding:1rem">
+      <h4>🧠 Suggestions</h4>
+      <div id="trade-suggestions"></div>
+    </div>
+    <button id="trade-end-btn" class="btn btn-primary btn-block mt-2 hidden" onclick="endTrade()">➡️ End Trade Window → XI Selection</button>
+  </section>
+
+  <!-- ══════════════════ XI SELECTION ══════════════════ -->
+  <section id="page-xi" class="page hidden">
+    <h2 style="color:var(--gold);text-align:center;margin-top:1rem">🎯 Playing XI Selection</h2>
+    <p class="text-center text-muted">Pick exactly 11 · Max 4 overseas</p>
+    <h3 id="xi-team-name" class="text-center mt-1"></h3>
+    <p class="text-center text-muted" id="xi-player-count"></p>
+    <div id="xi-checklist" class="glass mt-2" style="padding:1rem"></div>
+    <div class="text-center mt-2">
+      <p><strong id="xi-count">0/11 · 🌍 0/4</strong></p>
+      <button class="btn btn-primary" id="xi-save-btn" onclick="saveXI()" disabled>💾 Save Playing XI</button>
+      <button class="btn btn-primary mt-1" onclick="endXI()">🔬 Proceed to Analysis</button>
+    </div>
+  </section>
+
+  <!-- ══════════════════ ANALYSIS ══════════════════ -->
+  <section id="page-analysis" class="page hidden">
+    <h2 style="color:var(--gold);text-align:center;margin-top:1rem">🔬 AI Auction Analysis</h2>
+    <button id="analysis-run-btn" class="btn btn-primary btn-lg btn-block mt-2 hidden" onclick="runAnalysis()">🤖 Run Analysis</button>
+    <div id="analysis-content" class="mt-2"></div>
+  </section>
+
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

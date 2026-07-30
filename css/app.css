@@ -1,0 +1,304 @@
+/* ── CSS Reset & Base ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#FFD700;--gold2:#FFB800;--bg:#0a0a14;--card:#141428;
+  --card-hover:#1a1a38;--text:#e0e0f0;--muted:#8888aa;
+  --danger:#FF4444;--success:#00C853;--warning:#FF9800;
+  --blue:#448AFF;--purple:#AB47BC;--radius:16px;--radius-sm:10px;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+html,body{height:100%;width:100%;overflow-x:hidden}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--text);
+  line-height:1.5;
+}
+
+/* ── Animated Background ── */
+#particles-canvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;
+}
+body::before{
+  content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(circle at 20% 30%, rgba(255,215,0,0.04) 0%, transparent 50%),
+             radial-gradient(circle at 80% 70%, rgba(171,71,188,0.04) 0%, transparent 50%),
+             radial-gradient(circle at 50% 50%, rgba(68,138,255,0.03) 0%, transparent 50%);
+  z-index:0;pointer-events:none;animation:bgPulse 8s ease-in-out infinite;
+}
+@keyframes bgPulse{0%,100%{opacity:0.6}50%{opacity:1}}
+
+/* ── Layout ── */
+.app-container{
+  position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:1rem;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+
+/* ── Header ── */
+.header{
+  text-align:center;padding:2rem 1rem 1rem;
+}
+.header h1{
+  font-size:clamp(2rem,5vw,3.5rem);font-weight:900;
+  background:linear-gradient(135deg, var(--gold), #FF6B35, var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;animation:shimmer 3s ease-in-out infinite;
+}
+@keyframes shimmer{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+.header p{color:var(--muted);font-size:1.1rem;margin-top:0.3rem}
+
+/* ── Glass Card ── */
+.glass{
+  background:rgba(20,20,40,0.7);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  transition:transform 0.3s,box-shadow 0.3s;
+}
+.glass:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,0.5)}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;
+  padding:0.75rem 1.5rem;border:none;border-radius:var(--radius-sm);
+  font-family:var(--font);font-size:1rem;font-weight:700;cursor:pointer;
+  transition:all 0.3s;text-decoration:none;position:relative;overflow:hidden;
+}
+.btn-primary{
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  color:#1a1a2e;box-shadow:0 4px 15px rgba(255,215,0,0.3);
+}
+.btn-primary:hover{transform:scale(1.03);box-shadow:0 6px 25px rgba(255,215,0,0.5)}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+.btn-secondary{
+  background:rgba(255,255,255,0.08);color:var(--text);
+  border:1px solid rgba(255,255,255,0.15);
+}
+.btn-secondary:hover{background:rgba(255,255,255,0.15)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#ff5555}
+.btn-sm{padding:0.4rem 0.9rem;font-size:0.85rem}
+.btn-lg{padding:1rem 2rem;font-size:1.2rem}
+.btn-block{width:100%}
+
+/* ── Inputs ── */
+.input{
+  width:100%;padding:0.75rem 1rem;background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.12);border-radius:var(--radius-sm);
+  color:var(--text);font-family:var(--font);font-size:1rem;
+  transition:border-color 0.3s,box-shadow 0.3s;
+}
+.input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,215,0,0.15)}
+.input::placeholder{color:var(--muted)}
+
+/* ── Select ── */
+.select{
+  width:100%;padding:0.75rem 1rem;background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.12);border-radius:var(--radius-sm);
+  color:var(--text);font-family:var(--font);font-size:1rem;cursor:pointer;
+  appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 1rem center;
+}
+.select:focus{outline:none;border-color:var(--gold)}
+
+/* ── Room Code Badge ── */
+.room-code{
+  display:inline-block;font-size:2.8rem;font-weight:900;letter-spacing:0.3em;
+  color:var(--gold);padding:0.5rem 2rem;background:rgba(0,0,0,0.3);
+  border:2px solid var(--gold);border-radius:var(--radius);
+  animation:codePulse 2s ease-in-out infinite;
+}
+@keyframes codePulse{0%,100%{box-shadow:0 0 10px rgba(255,215,0,0.2)}50%{box-shadow:0 0 30px rgba(255,215,0,0.4)}}
+
+/* ── Grid Layouts ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+/* ── Player Card ── */
+.player-card{
+  background:linear-gradient(135deg, rgba(20,20,40,0.9), rgba(26,26,56,0.9));
+  border:2px solid rgba(255,255,255,0.1);border-radius:var(--radius);
+  padding:1.5rem;text-align:center;transition:all 0.4s;
+  position:relative;overflow:hidden;
+}
+.player-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--player-ovr-color, #888);
+}
+.player-card.sold{border-color:var(--success);animation:soldFlash 0.6s}
+.player-card.unsold{border-color:var(--danger);opacity:0.6}
+@keyframes soldFlash{0%{box-shadow:0 0 0 rgba(0,200,83,0)}50%{box-shadow:0 0 40px rgba(0,200,83,0.4)}100%{box-shadow:0 0 0 rgba(0,200,83,0)}}
+
+.player-name{font-size:1.4rem;font-weight:700;margin:0.3rem 0}
+.player-country{color:var(--muted);font-size:0.9rem}
+.player-role-badge{
+  display:inline-block;padding:2px 12px;border-radius:20px;
+  font-size:0.75rem;font-weight:700;text-transform:uppercase;margin:0.5rem 0;
+}
+.role-BAT{background:#4CAF50;color:#fff}.role-BOWL{background:#F44336;color:#fff}
+.role-AR{background:#FF9800;color:#fff}.role-WK{background:#448AFF;color:#fff}
+
+/* ── OVR Badge ── */
+.ovr-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:56px;height:56px;border-radius:50%;font-size:1.4rem;font-weight:900;
+  border:3px solid rgba(255,255,255,0.5);margin:0.5rem auto;
+  position:relative;
+}
+.ovr-gold{background:linear-gradient(135deg,#FFD700,#FF8C00);color:#1a1a2e}
+.ovr-purple{background:linear-gradient(135deg,#AB47BC,#7B1FA2);color:#fff}
+.ovr-blue{background:linear-gradient(135deg,#448AFF,#1565C0);color:#fff}
+.ovr-green{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff}
+.ovr-gray{background:linear-gradient(135deg,#888,#555);color:#fff}
+
+/* ── Timer Ring ── */
+.timer-container{text-align:center;padding:1rem}
+.timer-ring{
+  position:relative;width:100px;height:100px;margin:0 auto;
+}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring circle{
+  fill:none;stroke-width:6;
+}
+.timer-ring .bg{stroke:rgba(255,255,255,0.1)}
+.timer-ring .fg{stroke:var(--gold);stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke 0.3s}
+.timer-ring .fg.urgent{stroke:var(--danger)}
+.timer-text{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:1.8rem;font-weight:900;
+}
+
+/* ── Bid Panel ── */
+.bid-panel{
+  text-align:center;padding:1rem;
+}
+.current-bid{
+  font-size:2.5rem;font-weight:900;color:var(--gold);
+}
+.current-bid-team{color:var(--muted);font-size:0.9rem}
+.bid-amount{font-size:1.1rem;color:var(--gold2);margin:0.3rem 0}
+
+/* ── Team Sidebar ── */
+.team-bar{
+  display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0.8rem;
+  background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);
+  margin:0.2rem 0;border-left:3px solid var(--gold);
+  transition:background 0.2s;
+}
+.team-bar:hover{background:rgba(255,255,255,0.06)}
+.team-name{font-weight:700;flex:1}
+.team-purse{font-size:0.85rem;color:var(--gold2)}
+.team-squad{font-size:0.8rem;color:var(--muted)}
+
+/* ── Badges & Tags ── */
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:12px;
+  font-size:0.75rem;font-weight:700;
+}
+.badge-auto{background:rgba(171,71,188,0.2);color:#AB47BC}
+.badge-mystery{background:rgba(255,215,0,0.15);color:var(--gold);animation:mysteryGlow 1.5s infinite}
+@keyframes mysteryGlow{0%,100%{box-shadow:0 0 5px rgba(255,215,0,0.2)}50%{box-shadow:0 0 15px rgba(255,215,0,0.5)}}
+
+/* ── Progress ── */
+.progress-bar{
+  height:6px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;
+}
+.progress-fill{
+  height:100%;border-radius:3px;transition:width 0.5s;
+  background:linear-gradient(90deg, var(--gold), var(--gold2));
+}
+.progress-fill.danger{background:linear-gradient(90deg, var(--danger), #ff6666)}
+
+/* ── Log ── */
+.log-entry{
+  padding:0.3rem 0.6rem;border-radius:6px;margin:0.2rem 0;
+  font-size:0.85rem;animation:slideIn 0.3s;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.log-sold{background:rgba(0,200,83,0.1)}
+.log-unsold{background:rgba(255,68,68,0.1)}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+  animation:fadeIn 0.2s;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--card);border:1px solid rgba(255,255,255,0.1);
+  border-radius:var(--radius);padding:2rem;max-width:500px;width:90%;
+  max-height:80vh;overflow-y:auto;animation:scaleIn 0.3s;
+}
+@keyframes scaleIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ── Confetti ── */
+.confetti-piece{
+  position:fixed;pointer-events:none;z-index:2000;
+  animation:confettiFall var(--fall-duration, 2s) ease-in forwards;
+}
+@keyframes confettiFall{0%{transform:translateY(-100vh) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* ── Reveal Animation ── */
+.reveal-text{
+  animation:revealIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+@keyframes revealIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:0.3rem;margin-bottom:1rem}
+.tab{
+  padding:0.5rem 1rem;border:none;border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.04);color:var(--muted);
+  font-family:var(--font);font-size:0.9rem;cursor:pointer;transition:all 0.2s;
+}
+.tab.active{background:rgba(255,215,0,0.15);color:var(--gold);font-weight:700}
+
+/* ── Section Titles ── */
+.section-title{
+  font-size:1.3rem;font-weight:700;margin-bottom:1rem;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.section-title::after{
+  content:'';flex:1;height:1px;background:rgba(255,255,255,0.1);
+}
+
+/* ── Team card in lobby ── */
+.team-card{
+  padding:1rem;text-align:center;animation:popIn 0.4s;
+}
+@keyframes popIn{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ── Toggle Switch ── */
+.toggle{
+  position:relative;width:48px;height:26px;
+}
+.toggle input{display:none}
+.toggle .slider{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:rgba(255,255,255,0.1);border-radius:26px;
+  cursor:pointer;transition:0.3s;
+}
+.toggle .slider::before{
+  content:'';position:absolute;width:20px;height:20px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:0.3s;
+}
+.toggle input:checked+.slider{background:var(--gold)}
+.toggle input:checked+.slider::before{transform:translateX(22px)}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(255,215,0,0.3);border-radius:3px}
+
+/* ── Hidden ── */
+.hidden{display:none!important}
+
+/* ── Misc ── */
+.flex-center{display:flex;align-items:center;justify-content:center}
+.gap-1{gap:0.5rem}.gap-2{gap:1rem}.gap-3{gap:1.5rem}
+.mt-1{margin-top:0.5rem}.mt-2{margin-top:1rem}.mt-3{margin-top:2rem}
+.mb-1{margin-bottom:0.5rem}.mb-2{margin-bottom:1rem}
+.text-center{text-align:center}.text-muted{color:var(--muted)}
+.text-gold{color:var(--gold)}.text-sm{font-size:0.85rem}
+.fw-bold{font-weight:700}

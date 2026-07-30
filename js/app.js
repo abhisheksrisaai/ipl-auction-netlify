@@ -1,4 +1,4 @@
-// ── Supabase Config ──
+// ── Supabase Config (anon key is public by design) ──
 const SUPABASE_URL = 'https://uazkhrqevmsijjzcskvr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhemtocnFldm1zaWpqemNza3ZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNzE4ODAsImV4cCI6MjEwMDk0Nzg4MH0.Kno5zMRCJQOG9Uc-atkI3vu6gsGqOTCUck-YWfdKE78';
 
@@ -77,6 +77,8 @@ async function pollRoom() {
     if(!room) return;
     if(room.status !== G.status){ G.status = room.status; render(); return; }
     G.room = room;
+    // Ensure player map is loaded for all clients
+    if(Object.keys(G.playerMap).length===0){ const {data}=await SB.from('players').select('*'); if(data) data.forEach(p=>G.playerMap[p.id]=p); }
     const [{data:teams},{data:roster},{data:unsold},{data:playerLog}] = await Promise.all([
       SB.from('teams').select('*').eq('room_code',G.roomCode).order('created_at'),
       SB.from('roster').select('*').eq('room_code',G.roomCode),
@@ -88,6 +90,9 @@ async function pollRoom() {
     if(unsold) G.unsold = unsold;
     if(playerLog) G.playerLog = playerLog;
     if(room.current_player_id) {
+      // Reset finalize lock when player changes
+      if(G._lastPlayerId && G._lastPlayerId !== room.current_player_id) G._finalizing = false;
+      G._lastPlayerId = room.current_player_id;
       G.currentPlayer = G.playerMap[room.current_player_id] || null;
       G.currentBid = room.current_bid_lakhs || 0;
       G.currentBidTeam = room.current_bid_team;
@@ -353,11 +358,16 @@ function renderAuctionSub() {
       const remaining = (new Date(G.timerEnd) - new Date()) / 1000;
       if(remaining <= 0) {
         timerArea.innerHTML = '<div style="text-align:center;font-size:2rem;color:var(--danger)">⏰ TIME\'S UP!</div>';
-        finalizePlayer().then(r => {
-          if(r?.status==='sold'){ confetti(); toast(`SOLD! → ${r.team} for ₹${r.price}L`,'success'); }
-          else toast('UNSOLD','warning');
-          pollRoom();
-        });
+        // Only finalize once per player (avoid re-trigger on every poll)
+        if(!G._finalizing) {
+          G._finalizing = true;
+          finalizePlayer().then(r => {
+            G._finalizing = false;
+            if(r?.status==='sold'){ confetti(); toast(`SOLD! → ${r.team} for ₹${r.price}L`,'success'); }
+            else if(r?.status!=='already_sold'&&r?.status!=='already_unsold') toast('UNSOLD','warning');
+            pollRoom();
+          });
+        }
       } else {
         timerArea.innerHTML = timerRing(remaining, G.room?.timer_secs||15);
       }
